@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Rikyspace AI - Web & Article Summarizer",
+  "version": "1.0.0",
+  "description": "Rangkum artikel dan konten web secara instan menggunakan AI.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
