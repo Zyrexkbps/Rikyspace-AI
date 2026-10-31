@@ -10,19 +10,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const charCount = document.getElementById('charCount');
     const copyBtn = document.getElementById('copyBtn');
 
-    // Load API Key dari LocalStorage
     if (localStorage.getItem('gemini_api_key')) {
         apiKeyInput.value = localStorage.getItem('gemini_api_key');
     }
 
-    // Hitung karakter otomatis
     if (inputTextArea && charCount) {
         inputTextArea.addEventListener('input', () => {
             charCount.innerText = inputTextArea.value.length;
         });
     }
 
-    // Fitur Salin Hasil
     if (copyBtn && resultDiv) {
         copyBtn.addEventListener('click', () => {
             navigator.clipboard.writeText(resultDiv.innerText);
@@ -31,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Logika Pemanggilan API Gemini
     summarizeBtn.addEventListener('click', async () => {
         const apiKey = apiKeyInput.value.trim();
         const textToSummarize = inputTextArea.value.trim();
@@ -48,55 +44,52 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Simpan API Key
         localStorage.setItem('gemini_api_key', apiKey);
 
-        // UI Loading State
         loadingDiv.style.display = 'block';
         resultBox.style.display = 'none';
         summarizeBtn.disabled = true;
 
-        // Menyusun Prompt
-        let promptText = `Tolong bertindak sebagai asisten AI profesional. Berikan rangkuman dari teks berikut dengan ketentuan:`;
-        promptText += `\n- Gaya Rangkuman: ${mode === 'bullet' ? 'Poin-poin utama' : mode === 'short' ? 'Ringkasan singkat 2-3 paragraf' : 'Analisis mendalam dan komprehensif'}`;
-        promptText += `\n- Nada Bahasa: ${tone === 'formal' ? 'Formal dan Profesional' : tone === 'casual' ? 'Santai dan mudah dipahami' : 'Edukatif dengan penjelasan detail'}`;
-        promptText += `\n- Bahasa Hasil: Bahasa Indonesia\n\nTeks:\n${textToSummarize}`;
+        let promptText = `Tolong bertindak sebagai asisten AI profesional. Berikan rangkuman dari teks berikut:`;
+        promptText += `\n- Gaya Rangkuman: ${mode === 'bullet' ? 'Poin-poin utama' : mode === 'short' ? 'Ringkasan singkat 2-3 paragraf' : 'Analisis mendalam'}`;
+        promptText += `\n- Nada Bahasa: ${tone === 'formal' ? 'Formal' : tone === 'casual' ? 'Santai' : 'Edukatif'}`;
+        promptText += `\n- Bahasa: Bahasa Indonesia\n\nTeks:\n${textToSummarize}`;
 
-        // Menggunakan Endpoint v1beta dengan fallback model
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // Daftar model yang diuji secara berurutan jika ada error
+        const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+        let success = false;
 
-        try {
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json' 
-                },
-                body: JSON.stringify({
-                    contents: [{ 
-                        parts: [{ text: promptText }] 
-                    }]
-                })
-            });
+        for (const model of models) {
+            try {
+                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptText }] }]
+                    })
+                });
 
-            const data = await response.json();
+                const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.error?.message || `HTTP Error status: ${response.status}`);
+                if (response.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                    resultDiv.innerText = data.candidates[0].content.parts[0].text;
+                    success = true;
+                    break;
+                } else if (data.error) {
+                    console.warn(`Model ${model} gagal:`, data.error.message);
+                }
+            } catch (err) {
+                console.warn(`Koneksi ke ${model} gagal:`, err);
             }
-
-            if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                resultDiv.innerText = data.candidates[0].content.parts[0].text;
-            } else {
-                resultDiv.innerText = 'Respons diterima, namun tidak ada teks rangkuman yang dihasilkan oleh AI.';
-            }
-
-        } catch (error) {
-            console.error('Gemini API Error:', error);
-            resultDiv.innerText = `❌ Terjadi Kesalahan:\n${error.message}\n\nSaran: Pastikan API Key yang dimasukkan dari Google AI Studio sudah benar dan tidak ada pembatasan kuota.`;
-        } finally {
-            loadingDiv.style.display = 'none';
-            resultBox.style.display = 'block';
-            summarizeBtn.disabled = false;
         }
+
+        if (!success) {
+            resultDiv.innerText = "❌ Gagal mendapatkan respons dari Google AI.\n\nHal yang bisa diperiksa:\n1. Pastikan API Key valid dari aistudio.google.com\n2. Pastikan koneksi internet stabil.";
+        }
+
+        loadingDiv.style.display = 'none';
+        resultBox.style.display = 'block';
+        summarizeBtn.disabled = false;
     });
 });
