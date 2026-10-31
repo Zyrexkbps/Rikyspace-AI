@@ -1,49 +1,240 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rikyspace AI</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { width: 320px; padding: 16px; background-color: #f8fafc; color: #0f172a; }
-    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .header h1 { font-size: 16px; color: #2563eb; font-weight: 700; }
-    .config-group { margin-bottom: 12px; }
-    label { font-size: 11px; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px; }
-    input, select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; }
-    input:focus, select:focus { border-color: #2563eb; }
-    button { width: 100%; padding: 10px; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: background 0.2s; }
-    button:hover { background-color: #1d4ed8; }
-    button:disabled { background-color: #94a3b8; cursor: not-allowed; }
-    .result-box { margin-top: 12px; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; max-height: 180px; overflow-y: auto; line-height: 1.5; white-space: pre-wrap; }
-    .status { font-size: 11px; color: #64748b; margin-top: 6px; text-align: center; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rikyspace AI — Intelligent Workspace</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-card {
+            background: var(--card);
+            width: 100%;
+            max-width: 650px;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border: 1px solid var(--border);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            background: #dbeafe;
+            color: var(--primary);
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        textarea {
+            height: 140px;
+            resize: vertical;
+        }
+
+        .row-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .char-counter {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-primary:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+        }
+
+        .result-box {
+            margin-top: 24px;
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .result-content {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: #166534;
+        }
+
+        .btn-action {
+            background: transparent;
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: #475569;
+        }
+
+        .btn-action:hover {
+            background: #f1f5f9;
+        }
+
+        .loading-state {
+            display: none;
+            text-align: center;
+            padding: 16px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
-  <div class="header">
-    <h1>✨ Rikyspace AI</h1>
-  </div>
 
-  <div class="config-group">
-    <label for="apiKey">Gemini API Key 🔑</label>
-    <input type="password" id="apiKey" placeholder="Tempel API Key di sini...">
-  </div>
+    <div class="app-card">
+        <div class="header">
+            <h1>🤖 Rikyspace AI</h1>
+            <span class="badge">v2.0 Web Edition</span>
+        </div>
 
-  <div class="config-group">
-    <label for="length">Panjang Rangkuman 📝</label>
-    <select id="length">
-      <option value="singkat">Singkat & Padat (3 Poin)</option>
-      <option value="sedang" selected>Standar (1 Paragraf)</option>
-      <option value="detail">Mendalam & Detail</option>
-    </select>
-  </div>
+        <div class="form-group">
+            <label for="apiKey">Gemini API Key</label>
+            <input type="text" id="apiKey" placeholder="Tempelkan API Key Anda di sini...">
+        </div>
 
-  <button id="summarizeBtn">⚡ Rangkum Halaman Ini</button>
-  
-  <div id="status" class="status"></div>
-  <div id="result" class="result-box" style="display: none;"></div>
+        <div class="row-options">
+            <div class="form-group">
+                <label for="summaryType">Gaya Rangkuman</label>
+                <select id="summaryType">
+                    <option value="bullet">Poin-Poin Utama</option>
+                    <option value="short">Ringkasan Singkat</option>
+                    <option value="deep">Analisis Mendalam</option>
+                </select>
+            </div>
 
-  <script src="popup.js"></script>
+            <div class="form-group">
+                <label for="toneType">Nada Bahasa</label>
+                <select id="toneType">
+                    <option value="formal">Formal & Profesional</option>
+                    <option value="casual">Santai & Ringkas</option>
+                    <option value="edu">Edukasi / Penjelasan Lengkap</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="inputText">Teks Utama / Artikel</label>
+            <textarea id="inputText" placeholder="Ketik atau tempelkan teks panjang yang ingin dianalisis AI..."></textarea>
+            <div class="char-counter"><span id="charCount">0</span> karakter</div>
+        </div>
+
+        <button id="summarizeBtn" class="btn-primary">⚡ Mulai Rangkum Dengan AI</button>
+
+        <div id="loading" class="loading-state">
+            ⏳ AI sedang menganalisis dan merangkum teks...
+        </div>
+
+        <div id="resultBox" class="result-box">
+            <div class="result-header">
+                <label>Hasil Rangkuman AI:</label>
+                <button id="copyBtn" class="btn-action">📋 Salin Hasil</button>
+            </div>
+            <div id="result" class="result-content"></div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
 </body>
 </html>
